@@ -101,7 +101,7 @@ These fields are not indexed: role, name, title, content, `tokenVersion`, and `u
 
 1. In Coolify, create a new resource from this GitHub repository.
 2. Choose the **Docker Compose** build pack. Base directory `/`. Compose file `docker-compose.yml`.
-3. Coolify reads `SERVICE_URL_APP_3000` and assigns a domain to the `app` service on port 3000. If no wildcard domain is configured, open **Domains** and add `https://your-domain:3000`. The `:3000` is the container port. Visitors still use normal HTTPS.
+3. Coolify reads `SERVICE_URL_APP_3000` and assigns a domain to the `app` service on port 3000. Open **Domains** and set the service to `app` and the container port to `3000`. The saved value looks like `http://your-domain:3000`. The `:3000` is only the container port. Open the address without `:3000`. A domain with no port makes Traefik return `404 page not found`.
 4. Open **Environment Variables** and set the three runtime values below. They are not build arguments. The image build does not receive them. The process checks `JWT_SECRET` when the container starts.
 
 | Name | Required | Value |

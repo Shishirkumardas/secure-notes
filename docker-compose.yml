@@ -18,6 +18,19 @@ services:
         condition: service_healthy
     expose:
       - "3000"
+    # Coolify skips the proxy backend when the domain has no container port.
+    # That is Traefik's "404 page not found" on HTTP and "no available server" on HTTPS.
+    # These names match fqdnLabelsForTraefik() for service "app" (with and without the name hash).
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.http-0-${COOLIFY_RESOURCE_UUID}-app.service=http-0-${COOLIFY_RESOURCE_UUID}-app
+      - traefik.http.services.http-0-${COOLIFY_RESOURCE_UUID}-app.loadbalancer.server.port=3000
+      - traefik.http.routers.https-0-${COOLIFY_RESOURCE_UUID}-app.service=https-0-${COOLIFY_RESOURCE_UUID}-app
+      - traefik.http.services.https-0-${COOLIFY_RESOURCE_UUID}-app.loadbalancer.server.port=3000
+      - traefik.http.routers.http-0-${COOLIFY_RESOURCE_UUID}-app-d2a5.service=http-0-${COOLIFY_RESOURCE_UUID}-app-d2a5
+      - traefik.http.services.http-0-${COOLIFY_RESOURCE_UUID}-app-d2a5.loadbalancer.server.port=3000
+      - traefik.http.routers.https-0-${COOLIFY_RESOURCE_UUID}-app-d2a5.service=https-0-${COOLIFY_RESOURCE_UUID}-app-d2a5
+      - traefik.http.services.https-0-${COOLIFY_RESOURCE_UUID}-app-d2a5.loadbalancer.server.port=3000
     environment:
       SERVICE_URL_APP_3000: /
       NODE_ENV: production
@@ -29,7 +42,7 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/health"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/api/health"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -41,7 +54,7 @@ services:
     volumes:
       - mongo_data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'"]
       interval: 10s
       timeout: 10s
       retries: 5
