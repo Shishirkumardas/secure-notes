@@ -8,17 +8,42 @@ const seedAdmin = require("./src/seed");
 const port = Number(process.env.PORT) || 3000;
 const host = "0.0.0.0";
 
-async function start() {
+function listen() {
+  return new Promise((resolve, reject) => {
+    const server = app.listen(port, host, () => {
+      console.log(`Server listening on ${host}:${port}`);
+      resolve(server);
+    });
+    server.once("error", reject);
+  });
+}
+
+async function connectForever() {
   if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
-    throw new Error("JWT_SECRET is required and must be at least 16 characters");
+    app.locals.startupError = "Set JWT_SECRET in Coolify to at least 16 characters, then redeploy.";
+    console.error(app.locals.startupError);
+    return;
   }
 
-  await connectDB(process.env.MONGODB_URI);
-  await seedAdmin();
+  for (;;) {
+    try {
+      await connectDB(process.env.MONGODB_URI);
+      await seedAdmin();
+      app.locals.startupError = null;
+      console.log("Database ready");
+      return;
+    } catch (err) {
+      app.locals.startupError = err.message || "Database connection failed";
+      console.error(app.locals.startupError);
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+  }
+}
 
-  const server = app.listen(port, host, () => {
-    console.log(`Server listening on ${host}:${port}`);
-  });
+async function start() {
+  app.locals.startupError = "Connecting to the database";
+  const server = await listen();
+  connectForever();
 
   function shutdown(signal) {
     console.log(`Received ${signal}, shutting down`);

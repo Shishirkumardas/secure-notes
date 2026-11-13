@@ -14,23 +14,24 @@ services:
     restart: unless-stopped
     init: true
     depends_on:
-      mongo:
-        condition: service_healthy
+      - mongo
     expose:
       - "3000"
-    # Coolify skips the proxy backend when the domain has no container port.
-    # That is Traefik's "404 page not found" on HTTP and "no available server" on HTTPS.
-    # These names match fqdnLabelsForTraefik() for service "app" (with and without the name hash).
+    # Coolify leaves the generated router without a backend when the domain has no :3000.
+    # These routers name that host and the container port directly.
     labels:
       - traefik.enable=true
-      - traefik.http.routers.http-0-${COOLIFY_RESOURCE_UUID}-app.service=http-0-${COOLIFY_RESOURCE_UUID}-app
-      - traefik.http.services.http-0-${COOLIFY_RESOURCE_UUID}-app.loadbalancer.server.port=3000
-      - traefik.http.routers.https-0-${COOLIFY_RESOURCE_UUID}-app.service=https-0-${COOLIFY_RESOURCE_UUID}-app
-      - traefik.http.services.https-0-${COOLIFY_RESOURCE_UUID}-app.loadbalancer.server.port=3000
-      - traefik.http.routers.http-0-${COOLIFY_RESOURCE_UUID}-app-d2a5.service=http-0-${COOLIFY_RESOURCE_UUID}-app-d2a5
-      - traefik.http.services.http-0-${COOLIFY_RESOURCE_UUID}-app-d2a5.loadbalancer.server.port=3000
-      - traefik.http.routers.https-0-${COOLIFY_RESOURCE_UUID}-app-d2a5.service=https-0-${COOLIFY_RESOURCE_UUID}-app-d2a5
-      - traefik.http.services.https-0-${COOLIFY_RESOURCE_UUID}-app-d2a5.loadbalancer.server.port=3000
+      - traefik.http.routers.secure-notes-http.rule=Host(`app-ctijtqlbwc55j0icbkd7yv3w.169.58.157.13.sslip.io`)
+      - traefik.http.routers.secure-notes-http.entrypoints=http
+      - traefik.http.routers.secure-notes-http.priority=1000
+      - traefik.http.routers.secure-notes-http.service=secure-notes
+      - traefik.http.routers.secure-notes-https.rule=Host(`app-ctijtqlbwc55j0icbkd7yv3w.169.58.157.13.sslip.io`)
+      - traefik.http.routers.secure-notes-https.entrypoints=https
+      - traefik.http.routers.secure-notes-https.priority=1000
+      - traefik.http.routers.secure-notes-https.tls=true
+      - traefik.http.routers.secure-notes-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.secure-notes-https.service=secure-notes
+      - traefik.http.services.secure-notes.loadbalancer.server.port=3000
     environment:
       SERVICE_URL_APP_3000: /
       NODE_ENV: production

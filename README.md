@@ -97,7 +97,7 @@ These fields are not indexed: role, name, title, content, `tokenVersion`, and `u
 
 ## Deploy on Coolify
 
-`docker-compose.yml` builds the app and runs MongoDB 7 beside it. The app listens on `0.0.0.0:3000`. Coolify's proxy reaches that port. `/api/health` returns 200 only after MongoDB is connected, and both services define health checks.
+`docker-compose.yml` builds the app and runs MongoDB 7 beside it. The app listens on `0.0.0.0:3000`. Coolify's proxy reaches that port. `/api/health` returns 200 while the process is up, and `ok` is true after MongoDB is connected. Both services define health checks.
 
 1. In Coolify, create a new resource from this GitHub repository.
 2. Choose the **Docker Compose** build pack. Base directory `/`. Compose file `docker-compose.yml`.
