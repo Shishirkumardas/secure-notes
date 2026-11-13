@@ -1,20 +1,20 @@
 # Coolify: New Resource → Git repository → Build pack Docker Compose.
 # Base directory: /
 # Compose file: docker-compose.yml
+# The app service is the website. The api service is the Spring Boot API.
 # Coolify generates JWT_SECRET when the UI value is empty.
 # ADMIN_EMAIL and ADMIN_PASSWORD have defaults so the first admin can sign in.
-# Those values are read when the container starts. They are not required to build the image.
-# SERVICE_URL_APP_3000 tells Coolify to publish the app on port 3000.
+# Those values are read when the api container starts. They are not required to build the image.
 
 services:
   app:
     build:
-      context: .
+      context: ./frontend
       dockerfile: Dockerfile
     restart: unless-stopped
     init: true
     depends_on:
-      - mongo
+      - api
     expose:
       - "3000"
     # Coolify leaves the generated router without a backend when the domain has no :3000.
@@ -34,8 +34,34 @@ services:
       - traefik.http.services.secure-notes.loadbalancer.server.port=3000
     environment:
       SERVICE_URL_APP_3000: /
-      NODE_ENV: production
-      PORT: "3000"
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    depends_on:
+      - mongo
+    expose:
+      - "8080"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.secure-notes-api-http.rule=Host(`api-ctijtqlbwc55j0icbkd7yv3w.169.58.157.13.sslip.io`)
+      - traefik.http.routers.secure-notes-api-http.entrypoints=http
+      - traefik.http.routers.secure-notes-api-http.priority=1000
+      - traefik.http.routers.secure-notes-api-http.service=secure-notes-api
+      - traefik.http.routers.secure-notes-api-https.rule=Host(`api-ctijtqlbwc55j0icbkd7yv3w.169.58.157.13.sslip.io`)
+      - traefik.http.routers.secure-notes-api-https.entrypoints=https
+      - traefik.http.routers.secure-notes-api-https.priority=1000
+      - traefik.http.routers.secure-notes-api-https.tls=true
+      - traefik.http.routers.secure-notes-api-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.secure-notes-api-https.service=secure-notes-api
+      - traefik.http.services.secure-notes-api.loadbalancer.server.port=8080
+    environment:
+      SERVICE_URL_API_8080: /
+      SERVER_PORT: "8080"
+      PORT: "8080"
       MONGODB_URI: mongodb://mongo:27017/secure_notes
       JWT_SECRET: ${JWT_SECRET:-${SERVICE_REALBASE64_64_JWT}}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
@@ -43,7 +69,7 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-ChangeMeAdmin1}
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/api/health"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/api/health"]
       interval: 30s
       timeout: 5s
       retries: 5
