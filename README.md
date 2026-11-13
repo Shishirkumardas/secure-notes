@@ -102,13 +102,13 @@ These fields are not indexed: role, name, title, content, `tokenVersion`, and `u
 1. In Coolify, create a new resource from this GitHub repository.
 2. Choose the **Docker Compose** build pack. Base directory `/`. Compose file `docker-compose.yml`.
 3. Coolify reads `SERVICE_URL_APP_3000` and assigns a domain to the `app` service on port 3000. Open **Domains** and set the service to `app` and the container port to `3000`. The saved value looks like `http://your-domain:3000`. The `:3000` is only the container port. Open the address without `:3000`. A domain with no port makes Traefik return `404 page not found`.
-4. Open **Environment Variables** and set the three runtime values below. They are not build arguments. The image build does not receive them. The process checks `JWT_SECRET` when the container starts.
+4. Open **Environment Variables**. Leave `JWT_SECRET` empty and Coolify generates one. If you type a value, it must be at least 16 characters. A shorter saved value is what produces the "Set JWT_SECRET" page. `ADMIN_EMAIL` defaults to `admin@example.com` and `ADMIN_PASSWORD` defaults to `ChangeMeAdmin1`.
 
 | Name | Required | Value |
 | --- | --- | --- |
-| `JWT_SECRET` | Yes | A long random string, at least 16 characters |
-| `ADMIN_EMAIL` | Yes | Admin login email |
-| `ADMIN_PASSWORD` | Yes | Admin password, at least 8 characters |
+| `JWT_SECRET` | No | Empty uses a generated secret. Any typed value must be at least 16 characters |
+| `ADMIN_EMAIL` | No | Defaults to `admin@example.com` |
+| `ADMIN_PASSWORD` | No | Defaults to `ChangeMeAdmin1` |
 | `ADMIN_NAME` | No | Defaults to `Admin` |
 | `JWT_EXPIRES_IN` | No | Defaults to `7d` |
 

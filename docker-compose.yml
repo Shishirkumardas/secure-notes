@@ -1,9 +1,9 @@
 # Coolify: New Resource → Git repository → Build pack Docker Compose.
 # Base directory: /
 # Compose file: docker-compose.yml
-# Set JWT_SECRET, ADMIN_EMAIL, and ADMIN_PASSWORD in Coolify before the first deploy.
+# Coolify generates JWT_SECRET when the UI value is empty.
+# ADMIN_EMAIL and ADMIN_PASSWORD have defaults so the first admin can sign in.
 # Those values are read when the container starts. They are not required to build the image.
-# Coolify's build command only receives build-time variables, so do not use ${VAR:?} here.
 # SERVICE_URL_APP_3000 tells Coolify to publish the app on port 3000.
 
 services:
@@ -37,11 +37,11 @@ services:
       NODE_ENV: production
       PORT: "3000"
       MONGODB_URI: mongodb://mongo:27017/secure_notes
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:-${SERVICE_REALBASE64_64_JWT}}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       ADMIN_NAME: ${ADMIN_NAME:-Admin}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-ChangeMeAdmin1}
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/api/health"]
       interval: 30s
