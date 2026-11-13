@@ -1,0 +1,49 @@
+# Coolify: New Resource → Git repository → Build pack Docker Compose.
+# Base directory: /
+# Compose file: docker-compose.yml
+# Set JWT_SECRET, ADMIN_EMAIL, and ADMIN_PASSWORD before the first deploy.
+# SERVICE_URL_APP_3000 tells Coolify to publish the app on port 3000.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    depends_on:
+      mongo:
+        condition: service_healthy
+    expose:
+      - "3000"
+    environment:
+      SERVICE_URL_APP_3000: /
+      NODE_ENV: production
+      PORT: "3000"
+      MONGODB_URI: mongodb://mongo:27017/secure_notes
+      JWT_SECRET: ${JWT_SECRET:?}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      ADMIN_NAME: ${ADMIN_NAME:-Admin}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  mongo:
+    image: mongo:7.0
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  mongo_data:

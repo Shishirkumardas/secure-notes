@@ -1,0 +1,10 @@
+# Loaded automatically by local `docker compose up`.
+# Coolify deploys docker-compose.yml only, so these host ports stay off the server.
+
+services:
+  app:
+    ports:
+      - "3000:3000"
+  mongo:
+    ports:
+      - "127.0.0.1:27017:27017"

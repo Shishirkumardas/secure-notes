@@ -1,0 +1,15 @@
+node_modules
+npm-debug.log
+.env
+.env.*
+!.env.example
+.git
+.github
+coverage
+tests
+*.md
+*.pdf
+render.yaml
+Procfile
+docker-compose.yml
+docker-compose.override.yml
